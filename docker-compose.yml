@@ -3,17 +3,13 @@ version: '2'
 services:
     reversi_sf_mysql:
         image: mysql
-        ports:
-            - "3306:3306"
         environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: symfony
-            MYSQL_USER: symfony
-            MYSQL_PASSWORD: symfony
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     reversi_sf_php:
       build: docker/php56fpm
-      expose:
-        - "9000"
       volumes:
         - .:/app
         - ./docker/php56fpm/php.ini:/usr/local/etc/php/conf.d/99-overrides.ini
@@ -21,8 +17,6 @@ services:
       image: nginx:alpine
       ports:
         - "80:80"
-      links:
-        - reversi_sf_php
       volumes:
          - .:/app
          - ./docker/nginx/site.conf:/etc/nginx/conf.d/default.conf

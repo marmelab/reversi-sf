@@ -10,6 +10,9 @@
 # Docker
 /var/nginx/*
 
+# Env files
+.env
+
 # Cache, session files and logs (Symfony3)
 /var/cache/*
 /var/logs/*
