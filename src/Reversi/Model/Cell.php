@@ -1,6 +1,7 @@
 <?php
 
 namespace Reversi\Model;
+
 use Reversi\Exception\InvalidCellTypeException;
 
 class Cell
@@ -37,12 +38,12 @@ class Cell
   {
 
     switch($type){
-      case self::CELL_BLACK:
-        return self::CELL_WHITE;
-      case self::CELL_WHITE:
-        return self::CELL_BLACK;
-      case self::CELL_EMPTY:
-        return self::CELL_EMPTY;
+      case self::TYPE_BLACK:
+        return self::TYPE_WHITE;
+      case self::TYPE_WHITE:
+        return self::TYPE_BLACK;
+      case self::TYPE_EMPTY:
+        return self::TYPE_EMPTY;
     }
 
     throw new InvalidCellTypeException(sprintf('Unknow cell type %s', $type));
@@ -53,11 +54,11 @@ class Cell
   {
 
     switch($type){
-      case self::CELL_EMPTY:
+      case self::TYPE_EMPTY:
         return " ";
-      case self::CELL_BLACK:
+      case self::TYPE_BLACK:
         return "○";
-      case self::CELL_WHITE:
+      case self::TYPE_WHITE:
         return "●";
     }
 
@@ -69,16 +70,11 @@ class Cell
   {
 
     return [
-      self::CELL_EMPTY,
-      self::CELL_BLACK,
-      self::CELL_WHITE
+      self::TYPE_EMPTY,
+      self::TYPE_BLACK,
+      self::TYPE_WHITE
     ];
 
-  }
-
-  public function __toString()
-  {
-    return $this->x . 'x' . $this->y . '(' . self::getTypeSymbol($this->type) . ')';
   }
 
 }
