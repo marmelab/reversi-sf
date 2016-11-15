@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\RequestHandler;
+namespace AppBundle\Facebook;
 
 use AppBundle\RequestHandler\RequestHandlerInterface;
 use AppBundle\Facebook\FacebookApi;

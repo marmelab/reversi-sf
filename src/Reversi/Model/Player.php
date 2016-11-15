@@ -2,12 +2,14 @@
 
 namespace Reversi\Model;
 
+use Reversi\Model\Cell;
+
 class Player
 {
 
-  private $name;
-
-  private $cellType;
+  protected $id;
+  protected $name;
+  protected $cellType;
 
   public function __construct($name, $cellType)
   {
@@ -15,9 +17,9 @@ class Player
     $this->cellType = $cellType;
   }
 
-  public function getPlayName()
+  public function getId()
   {
-    return $this->name . '(' . Board::getCellTypeSymbol() . ')';
+    return $this->id;
   }
 
   public function getName()
@@ -28,6 +30,23 @@ class Player
   public function getCellType()
   {
     return $this->cellType;
+  }
+
+  public function setName($name)
+  {
+    $this->name = $name;
+    return $this;
+  }
+
+  public function setCellType($cellType)
+  {
+    $this->cellType = $cellType;
+    return $this;
+  }
+
+  public function getPlayName()
+  {
+    return $this->name . ' (' . Cell::getTypeSymbol($this->cellType) . ')';
   }
 
 }
