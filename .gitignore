@@ -1,4 +1,4 @@
-# Cache and logs (Symfony2)
+ # Cache and logs (Symfony2)
 /app/cache/*
 /app/logs/*
 !app/cache/.gitkeep
@@ -6,6 +6,12 @@
 
 # Email spool folder
 /app/spool/*
+
+# Docker
+/var/nginx/*
+
+# Env files
+.env
 
 # Cache, session files and logs (Symfony3)
 /var/cache/*
