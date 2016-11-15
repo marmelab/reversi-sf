@@ -56,3 +56,8 @@ doctrine:
         auto_generate_proxy_classes: "%kernel.debug%"
         naming_strategy: doctrine.orm.naming_strategy.underscore
         auto_mapping: true
+
+app:
+  facebook:
+    access_token: "%facebook_access_token%"
+    verify_token: "%facebook_verify_token%"

@@ -1,0 +1,4 @@
+tunnels:
+  app:
+    proto: http
+    addr: localhost:80
