@@ -3,7 +3,7 @@
 # Run ###########################
 
 run:
-	docker-compose up
+	docker-compose up -d
 
 # Expose (for webhooks access) ##
 
