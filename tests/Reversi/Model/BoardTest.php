@@ -27,23 +27,21 @@ class BoardTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    /**
-     * @expectedException Reversi\Exception\OutOfBoardException
-     */
-    public function testAddCellChangeToInvalidPositionMustThrowException()
+    public function testIsInBoundsShouldReturnFalseForInvalidPosition()
     {
 
-      $this->board->addCellChange(new Cell(42, 42, 0));
+      $this->assertEquals($this->board->isInBounds(42, 42), false);
 
     }
 
-    /**
-     * @expectedException Reversi\Exception\InvalidCellTypeException
-     */
-    public function testAddCellChangeWithInvalidCellTypeMustThrowException()
+    public function testGetCellTypeDistributionShouldReturnMapOfCountCellByType()
     {
 
-      $this->board->addCellChange(new Cell(0, 0, "test"));
+      $this->assertEquals($this->board->getCellTypeDistribution(), [
+        Cell::TYPE_EMPTY => 12,
+        Cell::TYPE_BLACK => 2,
+        Cell::TYPE_WHITE => 2
+      ]);
 
     }
 

@@ -2,18 +2,18 @@
 
 namespace Reversi\Model;
 
+use Reversi\Exception\TooManyPlayersException;
+use Reversi\Model\Cell;
+
 class Game
 {
 
-  private $firstPlayer;
-
-  private $secondPlayer;
-
-  private $currentPlayer;
-
-  private $board;
-
-  private $isFinished;
+  protected $id;
+  protected $firstPlayer;
+  protected $secondPlayer;
+  protected $currentPlayer;
+  protected $board;
+  protected $isFinished;
 
   public function __construct()
   {
@@ -23,9 +23,58 @@ class Game
 
   }
 
+  public function getId()
+  {
+    return $this->id;
+  }
+
   public function getCurrentPlayer()
   {
     return $this->currentPlayer;
+  }
+
+  public function markAsFinished()
+  {
+    $this->isFinished = true;
+    return $this;
+  }
+
+  public function isFinished()
+  {
+    return $this->isFinished;
+  }
+
+  public function addPlayer(Player $player)
+  {
+      if (!$this->firstPlayer) {
+          $this->firstPlayer = $player;
+      } elseif (!$this->secondPlayer) {
+          $this->secondPlayer = $player;
+      } else {
+          throw new TooManyPlayersException();
+      }
+
+      $this->assignFirstPlayer();
+
+      return $this;
+
+  }
+
+  public function assignFirstPlayer()
+  {
+
+    if($this->currentPlayer){
+      return;
+    }
+
+    // First player always has Black Cell Type
+
+    if($this->firstPlayer->getCellType() !== Cell::TYPE_BLACK){
+      $this->currentPlayer = $this->secondPlayer;
+    } else {
+      $this->currentPlayer = $this->firstPlayer;
+    }
+
   }
 
   public function switchPlayer()
@@ -39,17 +88,6 @@ class Game
 
     return $this;
 
-  }
-
-  public function markAsFinished()
-  {
-    $this->isFinished = true;
-    return $this;
-  }
-
-  public function isFinished()
-  {
-    return $this->isFinished;
   }
 
 }

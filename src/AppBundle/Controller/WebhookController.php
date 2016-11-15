@@ -12,7 +12,8 @@ use AppBundle\RequestHandler\FacebookRequestHandler;
 class WebhookController extends Controller
 {
 
-    public function indexAction($handler, Request $request){
+    public function indexAction($handler, Request $request)
+    {
 
       $requestHandlerRegistry = $this->get('app.request_handler.registry');
 

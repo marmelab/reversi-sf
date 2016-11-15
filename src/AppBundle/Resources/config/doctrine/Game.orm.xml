@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Reversi\Model\Game">
+    <id name="id" type="integer" column="id">
+      <generator strategy="AUTO"/>
+    </id>
+    <many-to-one field="firstPlayer" target-entity="Player">
+        <join-column name="first_player_id" referenced-column-name="id" />
+    </many-to-one>
+    <many-to-one field="secondPlayer" target-entity="Player">
+        <join-column name="second_player_id" referenced-column-name="id" />
+    </many-to-one>
+    <many-to-one field="currentPlayer" target-entity="Player">
+        <join-column name="current_player_id" referenced-column-name="id" />
+    </many-to-one>
+    <field name="isFinished" type="boolean" />
+    <embedded name="board" class="Board" />
+  </entity>
+</doctrine-mapping>
