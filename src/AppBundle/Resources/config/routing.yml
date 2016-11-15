@@ -1,0 +1,3 @@
+app_webhook:
+    path:     /webhook/{handler}
+    defaults: { _controller: AppBundle:Webhook:index }

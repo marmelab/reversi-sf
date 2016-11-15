@@ -8,7 +8,7 @@ run:
 # Expose (for webhooks access) ##
 
 expose:
-	ngrok run app --config=ngrok.yml
+	ngrok start app --config=ngrok.yml
 
 # Tests #########################
 
