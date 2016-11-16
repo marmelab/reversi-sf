@@ -1,0 +1,7 @@
+app_reversi_game_board_svg:
+    path:     /game/board/{id}.svg
+    defaults: { _controller: app.reversi.controller:svgGameBoardAction }
+
+app_reversi_game_board_png:
+    path:     /game/board/{id}.png
+    defaults: { _controller: app.reversi.controller:pngGameBoardAction }
