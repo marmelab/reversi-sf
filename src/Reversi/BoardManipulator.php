@@ -52,7 +52,7 @@ class BoardManipulator
     }
 
     $flipped = $this->getFlippedCellsFromCellChange($cellChange);
-    $this->board->drawCells(array_merge($flipped, $cellChange));
+    $this->board->drawCells(array_merge($flipped, [$cellChange]));
 
     return $this;
 
@@ -76,7 +76,21 @@ class BoardManipulator
 
   }
 
-  public function getFlippedCellsFromCellChange(Cell $cell)
+  public function getAvailableCellPositions($cellType)
+  {
+
+    $cellChanges = $this->getAvailableCellChanges($cellType);
+    $positions = [];
+
+    foreach($cellChanges as $cellChange){
+      $positions[] = $cellChange->getPosition();
+    }
+
+    return $positions;
+
+  }
+
+  public function getFlippedCellsFromCellChange(Cell $cellChange)
   {
 
     $cells = $this->board->getCells();
@@ -90,7 +104,7 @@ class BoardManipulator
     foreach ($this->getDirectionnalVectors() as $direction) {
       $flipped = array_merge(
         $flipped,
-        $this->getFlippedCellsFromCellChangeInDirection($cell, $direction[0], $direction[1])
+        $this->getFlippedCellsFromCellChangeInDirection($cellChange, $direction[0], $direction[1])
       );
     }
 
@@ -98,13 +112,13 @@ class BoardManipulator
 
   }
 
-  public function getFlippedCellsFromCellChangeInDirection(Cell $cell, $xVect, $yVect)
+  public function getFlippedCellsFromCellChangeInDirection(Cell $cellChange, $xVect, $yVect)
   {
 
     $cells = $this->board->getCells();
-    $reverseCellType = Cell::getReverseType($cell->getType());
+    $reverseCellType = Cell::getReverseType($cellChange->getType());
 
-    list($currX, $currY) = $cell->getPosition();
+    list($currX, $currY) = $cellChange->getPosition();
     $localCellType = Cell::TYPE_EMPTY;
     $flipped = [];
 
@@ -113,10 +127,10 @@ class BoardManipulator
       if(!$this->board->isInBounds($currX, $currY) || (($localCellType = $cells[$currY][$currX]) !== $reverseCellType)){
         break;
       }
-      $flipped[] = new Cell($currX, $currY, $cell->getType());
+      $flipped[] = new Cell($currX, $currY, $cellChange->getType());
     }
 
-    if($localCellType === $cell->getType() && count($flipped) > 0){
+    if($localCellType === $cellChange->getType() && count($flipped) > 0){
       return $flipped;
     }
 
