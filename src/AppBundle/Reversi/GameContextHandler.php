@@ -7,7 +7,8 @@ use AppBundle\Reversi\Event\GameEvent;
 use AppBundle\Reversi\Event\GameEvents;
 use AppBundle\Reversi\Event\GameNotificationEvent;
 use AppBundle\Reversi\GameManager;
-use Reversi\BoardManipulator;
+use Reversi\BoardAnalyzer;
+use Reversi\Model\Game;
 
 class GameContextHandler
 {
@@ -24,59 +25,72 @@ class GameContextHandler
   public function handle(GameContext $context)
   {
 
-    $origin = $context->getPlayerOrigin();
-    $playerToken = $context->getPlayerToken();
-    $message = $context->getMessage();
+    // Retrieve or create game from context
+    // If game does not exist and message is not othello, explain how to play
 
-    // If game doesn't exist, Send welcome message
-
-    $gameExist = $this->manager->exist($origin, $playerToken);
-
-    if(!$gameExist && strtolower($message) === 'othello'){
-      $game = $this->manager->create($origin, $playerToken);
-      $this->dispatcher->dispatch(GameEvents::ACTION_WELCOME, new GameEvent($playerToken, $game));
-    } elseif ($gameExist) {
-      $game = $this->manager->get($origin, $playerToken);
-    } else {
-      $this->dispatcher->dispatch(GameEvents::ACTION_EXPLAIN_START, new GameEvent($playerToken));
-      return;
-    }
-
-    // Manage game closing
-
-    if(in_array($message, ['close', 'finish'])){
-      $game->markAsFinished();
-      $this->manager->save($game);
-      $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($playerToken, $game));
-      return;
-    }
-
-    // Manage playing
-
-    if($game->getCurrentPlayer()->getToken() !== $playerToken){
-      $this->dispatcher->dispatch(GameEvents::ACTION_NOT_YOUR_TURN, new GameEvent($playerToken, $game));
-      return;
-    } else {
-
-      $boardManipulator = new BoardManipulator($game->getBoard());
-      $availableCellChanges = $boardManipulator->getAvailableCellChanges($game->getCurrentPlayer()->getCellType());
-
-      if(is_numeric($message) && in_array(intval($message), array_keys($availableCellChanges))){
-
-        $boardManipulator->applyCellChange($availableCellChanges[$message]);
-        $game->setBoard($boardManipulator->getBoard());
-        $this->manager->save($game);
-        
-        $this->dispatcher->dispatch(GameEvents::ACTION_SHOW_BOARD, new GameEvent($playerToken, $game));
-
-      } else {
-        $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($playerToken, $game));
+    if(!($game = $this->manager->get($context))){
+      if(strtolower($context->getMessage()) !== 'othello'){
+        $this->dispatcher->dispatch(GameEvents::ACTION_EXPLAIN_START, new GameEvent($context->getPlayerToken()));
+        return;
       }
+      $game = $this->manager->create($context);
+      $this->dispatcher->dispatch(GameEvents::ACTION_WELCOME, new GameEvent($context->getPlayerToken(), $game));
+      $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
+      return;
+    }
+
+    // Close game on demand
+
+    if(in_array($context->getMessage(), ['close', 'finish'])){
+      $this->manager->finish($game);
+      $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($context->getPlayerToken(), $game));
+      return;
+    }
+
+    // It's not the turn of the context player
+
+    if($game->getCurrentPlayer()->getToken() !== $context->getPlayerToken()){
+      $this->dispatcher->dispatch(GameEvents::ACTION_NOT_YOUR_TURN, new GameEvent($context->getPlayerToken(), $game));
+      return;
+    }
+
+    // It's current player turn
+    // Attempt to apply user choice and AI choice
+
+    if(!is_numeric($context->getMessage())){
+      $this->dispatcher->dispatch(GameEvents::ACTION_INVALID_INPUT, new GameEvent($context->getPlayerToken(), $game));
+      return;
+    }
+
+    try
+    {
+        $this->manager->playPosition($game, intval($context->getMessage()));
+        $this->dispatcher->dispatch(GameEvents::ACTION_SHOW_BOARD, new GameEvent($context->getPlayerToken(), $game));
+
+        // TO REPLACE WITH AI
+        $boardAnalyzer = new BoardAnalyzer($game->getBoard());
+        $currentPlayer = $game->getCurrentPlayer();
+        $availableCellChanges = $boardAnalyzer->getAvailableCellChanges($currentPlayer->getCellType());
+        $this->manager->play($game, $availableCellChanges[0]);
+
+        $this->dispatcher->dispatch(GameEvents::ACTION_SHOW_BOARD, new GameEvent($context->getPlayerToken(), $game));
+        $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
 
     }
+    catch(\Exception $e)
+    {
+
+        $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
+
+    }
+
+    // TODO
+    // Handle users can play or is full => Finished
+
+    // If game is finished, show winner
 
     if($game->isFinished()){
-      $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($playerToken, $game));
+      $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($context->getPlayerToken(), $game));
     }
 
   }

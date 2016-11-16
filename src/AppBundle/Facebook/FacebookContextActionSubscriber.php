@@ -30,7 +30,8 @@ class FacebookContextActionSubscriber implements EventSubscriberInterface
          GameEvents::ACTION_ASK_FOR_POSITION => 'onAskForPositionAction',
          GameEvents::ACTION_SHOW_BOARD => 'onShowBoardAction',
          GameEvents::ACTION_NOT_YOUR_TURN => 'onNotYourTurnAction',
-         GameEvents::ACTION_EXPLAIN_START => 'onExplainHowToStartAction'
+         GameEvents::ACTION_EXPLAIN_START => 'onExplainHowToStartAction',
+         GameEvents::ACTION_INVALID_INPUT => 'onInvalidInputAction'
       );
   }
 
@@ -95,6 +96,11 @@ class FacebookContextActionSubscriber implements EventSubscriberInterface
       "Nice to meet you.\nI only know how to play reversi. \nTape \"othello\" to see."
     );
 
+  }
+
+  public function onInvalidInputAction(GameEvent $e)
+  {
+    $this->api->sendMessage($e->getRecipient(), 'Your position choice is not valid.');
   }
 
 }
