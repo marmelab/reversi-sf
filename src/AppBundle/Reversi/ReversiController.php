@@ -13,7 +13,7 @@ use Intervention\Image\ImageManager;
 use Reversi\Model\Cell;
 use Reversi\Model\Game;
 use Reversi\Model\Board;
-use Reversi\BoardManipulator;
+use Reversi\BoardAnalyzer;
 
 class ReversiController
 {
@@ -31,8 +31,8 @@ class ReversiController
       $positions = [];
 
       if(($choiceCellType = $request->query->get('choices_for'))){
-        $boardManipulator = new BoardManipulator($game->getBoard());
-        $positions = $boardManipulator->getAvailableCellPositions(intval($choiceCellType));
+        $boardAnalyzer = new BoardAnalyzer($game->getBoard());
+        $positions = $boardAnalyzer->getAvailableCellPositions(intval($choiceCellType));
       }
 
       $response = new Response();
@@ -53,8 +53,8 @@ class ReversiController
       $board = $game->getBoard();
 
       if(($choiceCellType = $request->query->get('choices_for'))){
-        $boardManipulator = new BoardManipulator($board);
-        $positions = $boardManipulator->getAvailableCellPositions(intval($choiceCellType));
+        $boardAnalyzer = new BoardAnalyzer($board);
+        $positions = $boardAnalyzer->getAvailableCellPositions(intval($choiceCellType));
       }
 
       $img = $this->buildBoardImage($board, $positions);

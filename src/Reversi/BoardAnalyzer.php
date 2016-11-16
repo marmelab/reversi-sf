@@ -7,19 +7,14 @@ use Reversi\Model\Board;
 use Reversi\Spec\ReversiCellChangeSpecification;
 use Reversi\Exception\InvalidCellChangeException;
 
-class BoardManipulator
+class BoardAnalyzer
 {
 
   private $board;
 
   public function __construct(Board $board)
   {
-    $this->board = clone $board;
-  }
-
-  public function getBoard()
-  {
-    return $this->board;
+    $this->board = $board;
   }
 
   public function canApplyCellChange(Cell $cellChange)
@@ -39,22 +34,6 @@ class BoardManipulator
     }
 
     return false;
-
-  }
-
-  public function applyCellChange(Cell $cellChange)
-  {
-
-    list($x, $y) = $cellChange->getPosition();
-
-    if(!$this->canApplyCellChange($cellChange)){
-      throw new InvalidCellChangeException(sprintf("You can't change cell at %d,%d", $x, $y));
-    }
-
-    $flipped = $this->getFlippedCellsFromCellChange($cellChange);
-    $this->board->drawCells(array_merge($flipped, [$cellChange]));
-
-    return $this;
 
   }
 
