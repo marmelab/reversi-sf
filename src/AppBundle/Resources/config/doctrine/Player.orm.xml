@@ -6,5 +6,7 @@
     </id>
     <field name="name" type="string" />
     <field name="cellType" type="smallint" />
+    <field name="origin" type="string" nullable="true" />
+    <field name="token" type="string" nullable="true" />
   </entity>
 </doctrine-mapping>

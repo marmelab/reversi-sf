@@ -24,7 +24,7 @@ class AppExtension extends Extension
 
         // Setup FacebookApi config
 
-        $facebookApiDefinition = $container->getDefinition('app.facebook_api');
+        $facebookApiDefinition = $container->getDefinition('app.facebook.api');
         $facebookApiDefinition->replaceArgument(0, $config['facebook']);
 
     }

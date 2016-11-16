@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone="no"?>
+<svg width="{{ size }}" height="{{ size }}" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="{{ size }}" height="{{ size }}" stroke="transparent" fill="green"/>
+  {% for y, row in cells %}
+    {% set pad = (size/(row|length)) %}
+    <line x1="0" x2="{{ size }}" y1="{{ y*pad }}" y2="{{ y*pad }}" stroke="#333" fill="transparent" stroke-width="0.5"/>
+    {% for x, cell in row %}
+      {% if y == 0 %}
+      <line x1="{{ x*pad }}" x2="{{ x*pad }}" y1="{{ 0 }}" y2="{{ size }}" stroke="#333" fill="transparent" stroke-width="0.5"/>
+      {% endif %}
+      {% if cell != constant('Reversi\\Model\\Cell::TYPE_EMPTY') %}
+        {% set color = (cell == 2) ? 'white' : 'black' %}
+        <circle cx="{{ pad*(x+1)-(pad/2) }}" cy="{{ pad*(y+1)-(pad/2) }}" r="{{ pad*0.33 }}" stroke="transparent" fill="{{ color }}"/>
+      {% else %}
+        {% for posidx, pos in positions %}
+          {% if pos[0] == x and pos[1] == y %}
+          <text x="{{ x*pad+(pad/3) }}" y="{{ pad*(y+1)-(pad/4) }}"  font-family="Arial" font-size="{{ pad*0.65 }}">{{ posidx }}</text>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+</svg>
