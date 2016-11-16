@@ -4,6 +4,7 @@ namespace Reversi\Model;
 
 use Reversi\Exception\TooManyPlayersException;
 use Reversi\Model\Cell;
+use Reversi\Model\Board;
 
 class Game
 {
@@ -14,12 +15,14 @@ class Game
   protected $currentPlayer;
   protected $board;
   protected $isFinished;
+  protected $startAt;
 
   public function __construct()
   {
 
     $this->board = new Board(8, 8);
     $this->isFinished = false;
+    $this->startAt = new \DateTime();
 
   }
 
@@ -88,6 +91,17 @@ class Game
 
     return $this;
 
+  }
+
+  public function getBoard()
+  {
+    return $this->board;
+  }
+
+  public function setBoard(Board $board)
+  {
+    $this->board = $board;
+    return $this;
   }
 
 }

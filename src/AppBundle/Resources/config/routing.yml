@@ -1,3 +1,7 @@
 app_webhook:
-    path:     /webhook/{handler}
-    defaults: { _controller: AppBundle:Webhook:index }
+    resource: "@AppBundle/Resources/config/routing/webhook.yml"
+    prefix: /webhook
+
+app_reversi:
+    resource: "@AppBundle/Resources/config/routing/reversi.yml"
+    prefix: /reversi
