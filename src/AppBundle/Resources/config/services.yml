@@ -5,14 +5,14 @@ services:
   app.request_handler.registry:
     class: AppBundle\RequestHandler\RequestHandlerRegistry
 
-  app.facebook.request_handler:
-    class: AppBundle\RequestHandler\FacebookRequestHandler
-    arguments: [ "@app.facebook_api" ]
-    tags:
-      - { name: app.request_handler, alias: facebook }
-
   # Facebook
 
   app.facebook_api:
     class: AppBundle\Facebook\FacebookApi
     arguments: [{}]
+
+  app.facebook.request_handler:
+    class: AppBundle\Facebook\FacebookRequestHandler
+    arguments: [ "@app.facebook_api" ]
+    tags:
+      - { name: app.request_handler, alias: facebook }
