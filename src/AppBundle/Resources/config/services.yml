@@ -1,18 +1,31 @@
 services:
 
-  # Request Handler
-
-  app.request_handler.registry:
-    class: AppBundle\RequestHandler\RequestHandlerRegistry
-
   # Facebook
 
-  app.facebook_api:
+  app.facebook.api:
     class: AppBundle\Facebook\FacebookApi
     arguments: [{}]
 
-  app.facebook.request_handler:
-    class: AppBundle\Facebook\FacebookRequestHandler
-    arguments: [ "@app.facebook_api" ]
-    tags:
-      - { name: app.request_handler, alias: facebook }
+  app.facebook.controller:
+    class: AppBundle\Facebook\FacebookController
+    arguments: [ "@app.facebook.api", "@app.reversi.game_context.handler" ]
+
+  app.facebook.context_action.subscriber:
+        class: AppBundle\Facebook\FacebookContextActionSubscriber
+        arguments: [ "@app.facebook.api", "@router" ]
+        tags:
+            - { name: kernel.event_subscriber }
+
+  # Reversi
+
+  app.reversi.controller:
+    class: AppBundle\Reversi\ReversiController
+    arguments: [ "@templating" ]
+
+  app.reversi.game.manager:
+    class: AppBundle\Reversi\GameManager
+    arguments: [ "@doctrine.orm.default_entity_manager" ]
+
+  app.reversi.game_context.handler:
+    class: AppBundle\Reversi\GameContextHandler
+    arguments: [ "@app.reversi.game.manager", "@event_dispatcher" ]

@@ -31,7 +31,7 @@ class Board
       $this->cells[$y][$x] = $cell->getType();
     }
 
-    return $this;
+    return clone $this;
 
   }
 

@@ -1,0 +1,3 @@
+app_webhook_facebook:
+    path:     /facebook
+    defaults: { _controller: app.facebook.controller:webhookAction }
