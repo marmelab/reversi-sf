@@ -9,13 +9,11 @@ use Symfony\Component\DependencyInjection\Loader;
 
 class AppExtension extends Extension
 {
-
     /**
      * {@inheritdoc}
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -26,7 +24,5 @@ class AppExtension extends Extension
 
         $facebookApiDefinition = $container->getDefinition('app.facebook.api');
         $facebookApiDefinition->replaceArgument(0, $config['facebook']);
-
     }
-
 }

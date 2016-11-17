@@ -4,5 +4,4 @@ namespace Reversi\Exception;
 
 class InvalidCellChangeException extends \Exception
 {
-
 }
