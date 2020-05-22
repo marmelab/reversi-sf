@@ -1,4 +1,4 @@
-.PHONY: run stop expose test
+.PHONY: run stop expose test lint
 
 # Run ###########################
 
@@ -24,3 +24,8 @@ expose:
 
 test:
 	phpunit -vvv
+
+# Lint ##########################
+
+lint:
+	php-cs-fixer fix src/ --level=psr2

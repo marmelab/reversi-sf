@@ -7,24 +7,29 @@ use Symfony\Component\EventDispatcher\Event;
 
 class GameEvent extends Event
 {
+    private $game;
+    private $recipient;
+    private $payload;
 
-  private $game;
-  private $recipient;
+    public function __construct($recipient, Game $game = null, $payload = [])
+    {
+        $this->game = $game;
+        $this->recipient = $recipient;
+        $this->payload = $payload;
+    }
 
-  public function __construct($recipient, Game $game = null)
-  {
-    $this->game = $game;
-    $this->recipient = $recipient;
-  }
+    public function getGame()
+    {
+        return $this->game;
+    }
 
-  public function getGame()
-  {
-    return $this->game;
-  }
+    public function getRecipient()
+    {
+        return $this->recipient;
+    }
 
-  public function getRecipient()
-  {
-    return $this->recipient;
-  }
-
+    public function getPayload()
+    {
+        return $this->payload;
+    }
 }

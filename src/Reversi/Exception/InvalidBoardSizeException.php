@@ -2,7 +2,6 @@
 
 namespace Reversi\Exception;
 
-class InvalidBoardSizeException extends \Exception
+class InvalidBoardSizeException extends \InvalidArgumentException
 {
-
 }

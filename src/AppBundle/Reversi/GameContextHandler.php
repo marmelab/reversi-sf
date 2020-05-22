@@ -5,94 +5,154 @@ namespace AppBundle\Reversi;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use AppBundle\Reversi\Event\GameEvent;
 use AppBundle\Reversi\Event\GameEvents;
-use AppBundle\Reversi\Event\GameNotificationEvent;
-use AppBundle\Reversi\GameManager;
-use Reversi\BoardAnalyzer;
+use AppBundle\Reversi\GameContext;
 use Reversi\Model\Game;
+use Reversi\Model\Player;
+use Reversi\BoardAnalyzer;
+use Reversi\Exception\InvalidCellChangeException;
 
 class GameContextHandler
 {
+    private $manager;
+    private $ai;
+    private $dispatcher;
 
-  private $manager;
-  private $dispatcher;
-
-  public function __construct(GameManager $manager, EventDispatcherInterface $dispatcher)
-  {
-    $this->manager = $manager;
-    $this->dispatcher = $dispatcher;
-  }
-
-  public function handle(GameContext $context)
-  {
-
-    // Retrieve or create game from context
-    // If game does not exist and message is not othello, explain how to play
-
-    if(!($game = $this->manager->get($context))){
-      if(strtolower($context->getMessage()) !== 'othello'){
-        $this->dispatcher->dispatch(GameEvents::ACTION_EXPLAIN_START, new GameEvent($context->getPlayerToken()));
-        return;
-      }
-      $game = $this->manager->create($context);
-      $this->dispatcher->dispatch(GameEvents::ACTION_WELCOME, new GameEvent($context->getPlayerToken(), $game));
-      $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
-      return;
-    }
-
-    // Close game on demand
-
-    if(in_array($context->getMessage(), ['close', 'finish'])){
-      $this->manager->finish($game);
-      $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($context->getPlayerToken(), $game));
-      return;
-    }
-
-    // It's not the turn of the context player
-
-    if($game->getCurrentPlayer()->getToken() !== $context->getPlayerToken()){
-      $this->dispatcher->dispatch(GameEvents::ACTION_NOT_YOUR_TURN, new GameEvent($context->getPlayerToken(), $game));
-      return;
-    }
-
-    // It's current player turn
-    // Attempt to apply user choice and AI choice
-
-    if(!is_numeric($context->getMessage())){
-      $this->dispatcher->dispatch(GameEvents::ACTION_INVALID_INPUT, new GameEvent($context->getPlayerToken(), $game));
-      return;
-    }
-
-    try
+    public function __construct(GameManager $manager, GameAi $ai, EventDispatcherInterface $dispatcher)
     {
-        $this->manager->playPosition($game, intval($context->getMessage()));
-        $this->dispatcher->dispatch(GameEvents::ACTION_SHOW_BOARD, new GameEvent($context->getPlayerToken(), $game));
+        $this->manager = $manager;
+        $this->ai = $ai;
+        $this->dispatcher = $dispatcher;
+    }
 
-        // TO REPLACE WITH AI
+    public function handle(GameContext $context)
+    {
+
+        // Attempt to retrieve Game
+
+        if (!($game = $this->retrieveGame($context))) {
+            return;
+        }
+
+        // Close context handling on demand
+
+        if ($this->gameMustClose($game, $context)) {
+            return;
+        }
+
+        // Play turn
+
+        try {
+            $this->playTurn($game, $context);
+        } catch (\Exception $e) {
+            $errorEvent = new GameEvent(
+              $context->getPlayerToken(),
+              $game,
+              ['message' => $e->getMessage()]
+            );
+            $this->dispatcher->dispatch(GameEvents::ACTION_ERROR, $errorEvent);
+            return;
+        }
+
+        // If game is finished, show winner
+        // Else, ask for position
+
+        if ($game->isFinished()) {
+            $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($context->getPlayerToken(), $game));
+        } else {
+            $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
+        }
+    }
+
+    private function retrieveGame(GameContext $context)
+    {
+        $playerToken = $context->getPlayerToken();
+        if (!($game = $this->manager->get($context))) {
+            if (strtolower($context->getMessage()) !== 'othello') {
+                $this->dispatcher->dispatch(GameEvents::ACTION_EXPLAIN_START, new GameEvent($playerToken));
+                return;
+            }
+            $game = $this->manager->create($context);
+            $this->dispatcher->dispatch(GameEvents::ACTION_WELCOME, new GameEvent($playerToken, $game));
+            $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($playerToken, $game));
+
+            return;
+        }
+
+        return $game;
+    }
+
+    private function gameMustClose(Game $game, GameContext $context)
+    {
+        if (in_array($context->getMessage(), ['close', 'finish'])) {
+            $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent(
+              $context->getPlayerToken(),
+              $game
+            ));
+            $this->manager->finish($game);
+            return true;
+        }
+        return false;
+    }
+
+    private function playTurn(Game $game, GameContext $context)
+    {
+        $playerToken = $context->getPlayerToken();
+
+        // It's not the turn of the context player
+
+        if ($game->getCurrentPlayer()->getToken() !== $playerToken) {
+            $this->dispatcher->dispatch(GameEvents::ACTION_NOT_YOUR_TURN, new GameEvent($playerToken, $game));
+            return;
+        }
+
+        // Current player turn
+
+        try {
+            if (!is_numeric($context->getMessage())) {
+                throw new \Exception('Invalid position.');
+            }
+            $this->manager->playPosition($game, intval($context->getMessage()));
+            $this->dispatcher->dispatch(GameEvents::ACTION_SHOW_BOARD, new GameEvent($playerToken, $game));
+        } catch (\InvalidArgumentException $e) {
+            $this->dispatcher->dispatch(GameEvents::ACTION_ERROR, new GameEvent($playerToken, $game, ['message' => $e->getMessage()]));
+            return;
+        }
+
+        // Game is still playable ?
+
+        if (!$this->checkPlayability($game)) {
+            return;
+        }
+
+        // Reverse player turn
+
+        do {
+            try {
+                $bestCellChange = $this->ai->getBestCellChange($game);
+                $this->manager->play($game, $bestCellChange);
+            } catch (\InvalidArgumentException $e) {
+                $this->dispatcher->dispatch(GameEvents::ACTION_ERROR, new GameEvent($playerToken, $game, ['message' => $e->getMessage()]));
+            }
+        } while (!$this->playerCanPlay($game, $game->getHumanPlayer()) || !$this->checkPlayability($game));
+
+        // Game is still playable ?
+
+        $this->checkPlayability($game);
+    }
+
+    public function checkPlayability(Game $game)
+    {
+        if ($game->getBoard()->isFull() || !$this->playerCanPlay($game, $game->getCurrentPlayer())) {
+            $this->manager->finish($game);
+            return false;
+        }
+
+        return true;
+    }
+
+    public function playerCanPlay(Game $game, Player $player)
+    {
         $boardAnalyzer = new BoardAnalyzer($game->getBoard());
-        $currentPlayer = $game->getCurrentPlayer();
-        $availableCellChanges = $boardAnalyzer->getAvailableCellChanges($currentPlayer->getCellType());
-        $this->manager->play($game, $availableCellChanges[0]);
-
-        $this->dispatcher->dispatch(GameEvents::ACTION_SHOW_BOARD, new GameEvent($context->getPlayerToken(), $game));
-        $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
-
+        return $boardAnalyzer->hasAvailableCellChanges($player->getCellType());
     }
-    catch(\Exception $e)
-    {
-
-        $this->dispatcher->dispatch(GameEvents::ACTION_ASK_FOR_POSITION, new GameEvent($context->getPlayerToken(), $game));
-
-    }
-
-    // TODO
-    // Handle users can play or is full => Finished
-
-    // If game is finished, show winner
-
-    if($game->isFinished()){
-      $this->dispatcher->dispatch(GameEvents::ACTION_FINISH, new GameEvent($context->getPlayerToken(), $game));
-    }
-
-  }
-
 }

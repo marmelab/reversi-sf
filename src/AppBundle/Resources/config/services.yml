@@ -28,4 +28,12 @@ services:
 
   app.reversi.game_context.handler:
     class: AppBundle\Reversi\GameContextHandler
-    arguments: [ "@app.reversi.game.manager", "@event_dispatcher" ]
+    arguments: [ "@app.reversi.game.manager", "@app.reversi.ai", "@event_dispatcher" ]
+
+  app.reversi.ai:
+    class: AppBundle\Reversi\GameAi
+    arguments: [ "@app.reversi.ai.http_client" ]
+
+  app.reversi.ai.http_client:
+    class: GuzzleHttp\Client
+    arguments: [{"base_uri": "172.17.0.1:8080"}]

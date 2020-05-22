@@ -2,7 +2,6 @@
 
 namespace Reversi\Exception;
 
-class InvalidCellTypeException extends \Exception
+class InvalidCellTypeException extends \InvalidArgumentException
 {
-
 }

@@ -8,7 +8,6 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-
     /**
      * {@inheritdoc}
      */
@@ -24,7 +23,6 @@ class Configuration implements ConfigurationInterface
 
     public function addFacebookSection(ArrayNodeDefinition $rootNode)
     {
-
         $rootNode
           ->children()
               ->arrayNode('facebook')
@@ -35,7 +33,5 @@ class Configuration implements ConfigurationInterface
                   ->end()
               ->end()
           ->end();
-
     }
-
 }

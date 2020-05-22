@@ -9,7 +9,7 @@
       <line x1="{{ x*pad }}" x2="{{ x*pad }}" y1="{{ 0 }}" y2="{{ size }}" stroke="#333" fill="transparent" stroke-width="0.5"/>
       {% endif %}
       {% if cell != constant('Reversi\\Model\\Cell::TYPE_EMPTY') %}
-        {% set color = (cell == 2) ? 'white' : 'black' %}
+        {% set color = (cell == constant('Reversi\\Model\\Cell::TYPE_WHITE')) ? 'white' : 'black' %}
         <circle cx="{{ pad*(x+1)-(pad/2) }}" cy="{{ pad*(y+1)-(pad/2) }}" r="{{ pad*0.33 }}" stroke="transparent" fill="{{ color }}"/>
       {% else %}
         {% for posidx, pos in positions %}

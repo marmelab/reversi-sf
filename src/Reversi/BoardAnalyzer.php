@@ -4,122 +4,111 @@ namespace Reversi;
 
 use Reversi\Model\Cell;
 use Reversi\Model\Board;
-use Reversi\Spec\ReversiCellChangeSpecification;
-use Reversi\Exception\InvalidCellChangeException;
 
 class BoardAnalyzer
 {
+    private $board;
 
-  private $board;
-
-  public function __construct(Board $board)
-  {
-    $this->board = $board;
-  }
-
-  public function canApplyCellChange(Cell $cellChange)
-  {
-
-    $cells = $this->board->getCells();
-    list($x, $y) = $cellChange->getPosition();
-
-    if(!$this->board->isInBounds($x, $y) || $cells[$y][$x] !== Cell::TYPE_EMPTY){
-      return false;
+    public function __construct(Board $board)
+    {
+        $this->board = $board;
     }
 
-    foreach ($this->getDirectionnalVectors() as $vect) {
-      if(count($this->getFlippedCellsFromCellChangeInDirection($cellChange, $vect[0], $vect[1])) > 0){
-        return true;
-      }
-    }
+    public function canApplyCellChange(Cell $cellChange)
+    {
+        $cells = $this->board->getCells();
+        list($x, $y) = $cellChange->getPosition();
 
-    return false;
-
-  }
-
-  public function getAvailableCellChanges($cellType)
-  {
-
-    $cellChanges = [];
-
-    foreach($this->board->getCells() as $y => $rows){
-      foreach($rows as $x => $cell){
-        $cellChange = new Cell($x, $y, $cellType);
-        if($this->canApplyCellChange($cellChange)){
-          $cellChanges[] = $cellChange;
+        if (!$this->board->isInBounds($x, $y) || $cells[$y][$x] !== Cell::TYPE_EMPTY) {
+            return false;
         }
-      }
+
+        foreach ($this->getDirectionnalVectors() as $vect) {
+            if (count($this->getFlippedCellsFromCellChangeInDirection($cellChange, $vect[0], $vect[1])) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    return $cellChanges;
+    public function getAvailableCellChanges($cellType)
+    {
+        $cellChanges = [];
 
-  }
+        foreach ($this->board->getCells() as $y => $rows) {
+            foreach ($rows as $x => $cell) {
+                $cellChange = new Cell($x, $y, $cellType);
+                if ($this->canApplyCellChange($cellChange)) {
+                    $cellChanges[] = $cellChange;
+                }
+            }
+        }
 
-  public function getAvailableCellPositions($cellType)
-  {
-
-    $cellChanges = $this->getAvailableCellChanges($cellType);
-    $positions = [];
-
-    foreach($cellChanges as $cellChange){
-      $positions[] = $cellChange->getPosition();
+        return $cellChanges;
     }
 
-    return $positions;
-
-  }
-
-  public function getFlippedCellsFromCellChange(Cell $cellChange)
-  {
-
-    $cells = $this->board->getCells();
-    list($x, $y) = $cellChange->getPosition();
-
-    if(!$this->board->isInBounds($x, $y) || $cells[$y][$x] !== Cell::TYPE_EMPTY){
-      return [];
+    public function hasAvailableCellChanges($cellType)
+    {
+        return $this->getAvailableCellChanges($cellType) > 0;
     }
 
-    $flipped = [];
-    foreach ($this->getDirectionnalVectors() as $direction) {
-      $flipped = array_merge(
-        $flipped,
-        $this->getFlippedCellsFromCellChangeInDirection($cellChange, $direction[0], $direction[1])
-      );
+    public function getAvailableCellPositions($cellType)
+    {
+        $cellChanges = $this->getAvailableCellChanges($cellType);
+        $positions = [];
+
+        foreach ($cellChanges as $cellChange) {
+            $positions[] = $cellChange->getPosition();
+        }
+
+        return $positions;
     }
 
-    return $flipped;
+    public function getFlippedCellsFromCellChange(Cell $cellChange)
+    {
+        $cells = $this->board->getCells();
+        list($x, $y) = $cellChange->getPosition();
 
-  }
+        if (!$this->board->isInBounds($x, $y) || $cells[$y][$x] !== Cell::TYPE_EMPTY) {
+            return [];
+        }
 
-  public function getFlippedCellsFromCellChangeInDirection(Cell $cellChange, $xVect, $yVect)
-  {
+        $flipped = [];
+        foreach ($this->getDirectionnalVectors() as $direction) {
+            $flippedInDirection = $this->getFlippedCellsFromCellChangeInDirection($cellChange, $direction[0], $direction[1]);
+            $flipped = array_merge($flipped, $flippedInDirection);
+        }
 
-    $cells = $this->board->getCells();
-    $reverseCellType = Cell::getReverseType($cellChange->getType());
-
-    list($currX, $currY) = $cellChange->getPosition();
-    $localCellType = Cell::TYPE_EMPTY;
-    $flipped = [];
-
-    while(true){
-      list($currX, $currY) = [$currX+$xVect, $currY+$yVect];
-      if(!$this->board->isInBounds($currX, $currY) || (($localCellType = $cells[$currY][$currX]) !== $reverseCellType)){
-        break;
-      }
-      $flipped[] = new Cell($currX, $currY, $cellChange->getType());
+        return $flipped;
     }
 
-    if($localCellType === $cellChange->getType() && count($flipped) > 0){
-      return $flipped;
+    public function getFlippedCellsFromCellChangeInDirection(Cell $cellChange, $xVect, $yVect)
+    {
+        $cells = $this->board->getCells();
+        $reverseCellType = Cell::getReverseType($cellChange->getType());
+
+        list($currX, $currY) = $cellChange->getPosition();
+        $localCellType = Cell::TYPE_EMPTY;
+        $flipped = [];
+
+        while (true) {
+            list($currX, $currY) = [$currX + $xVect, $currY + $yVect];
+            if (!$this->board->isInBounds($currX, $currY) || (($localCellType = $cells[$currY][$currX]) !== $reverseCellType)) {
+                break;
+            }
+            $flipped[] = new Cell($currX, $currY, $cellChange->getType());
+        }
+
+        if ($localCellType === $cellChange->getType() && count($flipped) > 0) {
+            return $flipped;
+        }
+
+        return [];
     }
 
-    return [];
-
-  }
-
-  public function getDirectionnalVectors()
-  {
-    return [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
-  }
-
+    public function getDirectionnalVectors()
+    {
+        return [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
+    }
 }
